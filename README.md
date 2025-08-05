@@ -1,111 +1,111 @@
-# big_data_and_parallel_processing_finall_project
+Big Data and Parallel Processing Final Project
+Docker
+To containerize the project, we configured two files: requirements.txt, which lists all the libraries used in the project along with their versions, and Dockerfile, which specifies the setup for the container image and the commands to execute. To deploy the project on a server, you only need to run the build and run commands, and the Dockerized application will be up and running.
+FastAPI
+The core of the project is main.py, powered by FastAPI, which serves an index.html page to users upon request. This page collects user inputs, such as which project output they want to explore or which specific section of the project. Based on the user's selection, an API request is sent to the server specifying their requirements.
+If an image and a network type are provided, the server saves the image and passes it to the selected network model. The output—either a mask or a label—is then sent to the image_result.html page for display. If the user selects a CNN, the input image is returned with its label; if an FCN is chosen, a mask is returned.
+If the user opts for parallel processing project outputs, they must specify which part, section, and scenario they want. These selections are sent to the server, which executes the corresponding code, stores the results in a data structure, and passes it back to main.py. The results are then displayed on the result.html page.
+Note that multiprocessing code does not require terminal execution as long as the script includes the standard if __name__ == '__main__': block. For this reason, the command to run the core program is embedded within the script to avoid issues with multiprocessing execution.
+Big Data
+FCN
+To implement the FCN model on the Oxford-IIIT Pet dataset, we first normalized the input images using code available in preprocess.py. After normalization, we designed a network (shown below) to train and evaluate the model:
 
-#  Docker
-برای داکرایز کردن پروژه ما دو فایل تنظیم کردیم یکی requirements.tx که شامل تمامی کتابخانه های مورد استفاده در پروژه همراه با ورژن آنهاست و یکی هم فایل Dockerfile شامل آنچه که باید روی ایمیج کانتینر سرور نصب شده و کامند هایی که باید زده شود 
-حال برای اجرای فایل بر روری سرور تنها زدن دو کامند بیلد و ران کافیست و فایل داکرایز شده و اجرا میشود
+The model's accuracy was evaluated, and the trained model was saved as final_model_fcn.h5. To use this model, the fcn_use_model.py script loads the pretrained model, normalizes the input image, processes it, and generates a mask. The mask is adjusted to highlight differences visible to the human eye, saved as an image, and its path is returned.
+CNN
+Similar to the FCN approach, but normalization is unnecessary here since the data is already normalized. The input data is split into input and output components, and the model is trained using the network architecture shown below:
 
+The trained model is saved, and a separate script, similar to the FCN one, loads the model, processes the input image, and returns the corresponding label.
+Parallel Processing
+Part 1: Thread-Based Parallelism
+For each exercise, outputs are stored in a global list, which is then passed to the core program and displayed on the results page.
+1) Defining a Thread
+The code is straightforward and self-explanatory, so we focus on the scenarios:
 
-# fastAPI
-در این پروژه ما یک هسته اصلی پروژه به نام main.py داریم که بواسطه fastAPIصفحه index.html را به هر کاربری که درخواست دهد نمایش میدهد و این صفحه از کاربر /انچه که نیاز دارد را میگیرد (مثلا خروجی کدام پروژه را قصد دارد بررسی کند و یا کدام بخش از پروژه را و...) بنا به انتخاب کاربر, یک api  از سمت کاربر به سرور ارسال میشود شامل اینکه کاربر چه میخواهد
-اگر تصویر همراه با نوع شبکه ارسال شود هسته برنامه تصویر را ذخیره کرده و به مدل ساخته شده از شبکه انتخابی کاربر میدهد خروجی که یا یک ماسک یا یک برچسب است را از کاربر گرفته و به صفحه image_result.html ارسال میکند و این صفحه خروجی را نمایش میدهد اگر شبکه cnn انتخاب شده باشد تصویر ورودی را همراه با برچسبش و اگر fcn باشد ماسک را برمیگرداند
-حال اگر کاربر انتخاب کند که خروجی پروژه پردازش موازی را میخواهد باید انتخاب کند که خروجی کدام پارت و خروجی کدام سکشن از آن پارت و خروجی کدام سناریو را میخواهد با انتخاب اینها,  همگی به سرور میروند و سرور بنا به انتخاب های کاربر کد مد نظر کاربر را اجرا میکند و خروجی کد را در یک ساختمان داده ذخیره کرده و به هسته برنامه برمیگرداند و هسته برنامه خروجی را به صفحه result.htmlمیفرستد و آن صفحه خروجی را چاپ میکند
-لازم به ذکر میدونم که بگم طی بررسی که بنده کردم کد های مالتی پراسس برای اجرا  لزومی ندارد که در ترمینال اجرا شوند بلکه لازم است برای اجرا فایل اجرا کننده اش شامل 
+Scenario 1: Each thread is created, executed, and waits for completion before the next thread starts.
+Scenario 2: All threads are created and executed simultaneously, then wait for completion. This is the fastest scenario.
+Scenario 3: A hybrid approach where half the threads run sequentially, and the other half run concurrently.
 
-if __name__ =='__main__':
+2) Determining the Current Thread
+Each function takes a random parameter, prints a start message, pauses based on the parameter, and then prints a completion message. The scenarios are:
 
-باشد برای همین کامند اجرای هسته برنامه را داخل خودش نوشتم که مشکلی برای اجرای کدهای مالتی پراسس ایجاد نشود 
+Scenario 1: All functions start in parallel, then wait for completion.
+Scenario 2: Despite multithreading, functions execute sequentially using join.
+Scenario 3: The last two functions run in parallel but sequentially relative to the first.
 
-#  Big Data
-#       FCN:
-برای پیاده سازی شبک fcn برو روی داده هایoxford_iiit_pet لازم بود در ابتدا تصاویر ورودی را نرمال سازی کنیم که کد این نرمال سازی در فایلprepross.py در دسترس است پس از نرمال سازی باید شبکه ای طراحی کرده و داده هارا به آن میدادیم برایم آموزش و ارزیابی مدل
-برای این امر ما ازین شبکه استفاده کردیم
-![img_5.png](img_5.png)
-سپس دقت مدل را نهایتن ارزیابی کرده و مدل ساخته شده را به اسم final_model_fcn.h5ذخیره میکنیم
-حالا برای استفاده از این مدل ساخته شده به فایل fcn_use_model.py مراجبعه میکنیم درین فایل مدل پیشتر ساخته شده را خوانده و تصویر ورودی را پس از نرمال سازی به آن داده و ماسک خروجی را به نحوی که تفاوت ها برای انسان قابل مشاهد باشد تغییر داده و بصورت یک تصویر ذخیره میکنیم و آدرس آن تصویر را برمیگردانیم 
+3) Defining a Thread Subclass
+This section mirrors Section 1 but assigns custom names to threads. The key difference is that threads are defined as classes inheriting from threading.Thread, offering greater customization and access to threading tools. The code to be executed is placed in the run method of the class, and threads are started with .start() as before.
+4) Thread Synchronization with a Lock
+A lock is used to manage access to a critical section where simultaneous execution must be avoided. The first thread to reach the critical section acquires the lock, while others wait until it’s released. The scenarios are:
 
-# CNN:
+Scenario 1: All threads are started, then wait for completion.
+Scenario 2: Similar to the first, but the lock is applied only to the sleep section, allowing other parts to run in parallel.
+Scenario 3: Like the previous scenarios, but the lock is applied to the initial section of the threads.
 
-مثل قبلیه منتها اینجا دیگه نیازی به نرمال سازی نیست چون خود داده نرمال هست داده را از ورودی خوانده و به بخش های ورودی و خروجی تقسیم میکنیم
-سپس با شبکه ای به صورت زیر آموزشش میدهیم
-![img_6.png](img_6.png)
-و در نهایت مدل حاصله را ذخیره میکنیم
-و مثل قبلی یک فایل برای استفاده از مدل ایجاد میکنیم که تصویر را از ورودی گرفته مدل مذکور را خوانده و تصویر را به مدل داده و برچسب تصویر را صمن بدست آوردن برچسب, آنرا برمیگرداند
+5) Thread Synchronization with RLock
+This involves two functions: one adds and the other removes (based on a random input). A lock ensures that adding and removing don’t happen simultaneously. The scenarios differ in the sleep durations within the locked sections, affecting the output.
+6) Thread Synchronization with Semaphores
+This implements a producer-consumer problem using semaphores. The producer increments the semaphore after producing, and the consumer decrements it. When the semaphore reaches zero, the consumer waits until the producer increases it again. The scenarios are:
 
-# Parallel Processing
-# part one : Thread-Based Parallelism
-برای نمایش خروجی هر تمرین تمامی خروجی هارا در یک لیست گلوبار ذخیره میکنیم و در نهایت آن لیست را به هسته برنامه بازمیگردانیم و در آنجه به صفحه نتایج پاس داده میشود
-# 1) Defining a thread:
-کد به شدت ساده و قابل فهم است فلذا از توضیح آن صرف نظر کرده و تنها به شرح سناریو ها بسنده میکنیم
-سناریو اول به این صورت است که هر تردی که ایجاد شد صبر میکند تا تمام شود و سپس به سراغ ایجاد و اجرای ترد بعدی میرود
-در سناریوی دو برعکس اولی نخست تمامی سناریو ها اجرا میشوند سپس صبر میکند  تا همگی تمام شوند این سناریو سریع ترین سناریو است
-سناریو سهاین سناریو که ترکیب دو سناریو قبلی است به این صورت است که نصف نخ هارا به سورت خطی و مابقی را یکجا اجرا میکند
+Scenario 1: 10 producers and 10 consumers are created, synchronized with semaphores, and all complete using join.
+Scenario 2: All consumers are created first and wait for producers to generate items.
+Scenario 3: One producer and one consumer run, complete their process, and then the next pair is created.
 
-# 2) Determining the current thread
-به این صورت است که هر تابع یک پارامتر رندوم میگیرد و پیام استارت میدهد و بنا به پارا متر رندومی که گرفته است متوقف میشود و سپس پیام پایان میدهد
+7) Thread Synchronization with a Barrier
+This simulates a race where a "game over" message is printed once all players reach the finish line. The scenarios are:
 
- من برای اجرای سناریو های مختلف این کد به اینصورت عمل کردم که در سناروی اول, نخست همه توابع استارت شود و سپس انتظار برای پایان آنها اعمال شود (به شورت موازی اجرا شوند)
- در سناریو دوم به این صورت عم کردم که علی رقم مولتی ترد بودن برنامه, توابع با استفاده از join بصورت خطی اجرا شوند
- در سناریو سوم هم به اینصورت که دو تابع آخر بصورت موازی باهم و به صورتی خطی نسبت به اولی اجرا شوند
- # 3) Defining a thread subclass
-این کد کل سناریو هاش دقیقا مثل سکشن 1 هست با این تفاوت که در اینجا به ترد ها اسم مد نظر خود را میدهیم 
-اما تفاوت اصلی آن با کد سکشن اول در این است که  کد مالتی ترد را به صورتی میزنیم که هر ترید بعنوان یک کلاسی تعریف شود که از تردینگ ارس بری میکند استفاده از کلاس سبب میشود که دسترسی بیشتری به ابزار های تردینگ به ما میدهد و امکان شخصی سازی بیشتر را فراهم میکند
-درین روش کدی که قصد اجرای آنرا داریم را در تابع run کلاس نوشته و برای اجرا گرفتن آن مثل قبل از .start()
-استفاده میکنیم
+Scenario 1: Uses a global variable to track completion without a barrier.
+Scenario 2: Uses join to achieve the same result.
+Scenario 3: Uses a barrier to synchronize the threads.
 
-# 4) Thread synchronization with a lock
- اینجا از لاک استفاده میکنیم به این صورت که ترد به داری که بخشی است که نباید همزمان اجرا شود برای این امر از لاک استفاده میکنیم به این صورت اولی که به آن ناحیه بحرانی رسید لاک را برای خود برمیدارد و وقتی دیگری رسید منتطر میماند تا اولی کارش تمام شود و سپی آن لاک را برمیدارد و دوباره بعدی که رسید را منتطر میگذارد و الی آخر
- 
-سه نیاریو پیاده کردیم به این شرح :
-اولی به اینصورت که نخست همه ترد ها را اجرا کرده و سپس منتظر اتمام همه میماند
-دومی هم مثل اول اجرا میضود منتها لاک تنها رو بخش اسلیپ آن قرار دارد و باقی به صورت موازی اجرا میشوند سومی هم مثل دوتا قبلی است اما لاک بر روی بخش آغازین ترد ها قرار دارد
+Part 2: Process-Based Parallelism
+Outputs for each exercise are stored in a queue. After the program completes, the queue’s contents are transferred to a list, passed to the core program, and displayed on the results page.
+1) Spawning a Process
+This mirrors Section 1 of threading but uses multiprocessing. The function takes an input number and prints lines from 0 to that number (e.g., input 5 prints 0, 1, 2, 3, 4). The scenarios are identical to those in threading.
+2) Naming a Process
+Processes are assigned custom names, and the name of each process is retrieved during execution. The scenarios are:
 
-# 5) Thread synchronization with RLock
-شامل دو تابع است که یکی اد میکندو دیگری حذف میکند (آن تعدادی که به صورت رندوم از ورودی  میگیرد) و زمان اضافه کردن یا حذف کردن برنامه قفل میشود تا به صورت همزمان اضافه یا حذف نشود
-سناریو ها در زمان های اسلیپ که داخل قفل ها دارند متفاوت اند و این امر سبب متفاوت شدن خروجی میشود
+Scenario 1: Two processes (one with a custom name, one default) start and wait for completion.
+Scenario 2: Processes run sequentially, one after the other.
+Scenario 3: The sleep time is removed to minimize execution time.
 
-# 6) Thread synchronization with semaphores
-مسئله تولید کننده و مصرف کننده است که با سمافور پیاده سازی شده است به این صورت که تولید کننده پس از تولید یکی به مقدار سما فور اضافه میکند و مصرف کننده یکی کم میکند زمانی که صمافور 0 شد مصرف کننده سبر میکند تا این مقدار تغییر کند و در همین حین تولید کننده باز تولید میکند تا تا مصرف کننده بتواند باز هم مصرف کند
-سناریو اول به این صورت است که ابتدا 10 تولید کننده و 10 مصرف کننده ایجاد شده و با سمافور همگامی آنها مدیریت شده و در نهایت همگی با join به اتمام میرسند
-سناریو دوم هم به این صورت است که نخست همه مصر ف کنندگان نخ هایشان ایجاد شده منتطر میماننده تا تولید کنندگان تولید کنند
-سناریو سوم هم به این صورت که یک تولید کننده و یک مصرف کننده اجرا شده و منتظر میماند تا تمام شود فرایند تولید و مصرف و سپس به سراغ اجاد نخ های تولید و مصرف بهدی میرود
+3) Running Processes in the Background
+Background processes don’t produce output directly, so outputs are stored in a queue for display. To differentiate background processes, we exclude their output from the queue if they’re marked as background. The scenarios are:
 
-# 7) Thread synchronization with a barrier
-این پیاده سازی یک مسابقه با استفاده از بریر است به این صورت که پس از به خط پایان رسیدن همه  بازیکنان پیام بازی تمام شد چاپ مسابقه تمام شد در دو سناریو اول بدون استفاده از برید این امر را محقق ساختیم در سناریو اول با استفده از یک متغیر سراسری اینکار را کردیم و در سناریو دوم به کمک همان صفت join این امر محقق شد در سناریو آخر هم با بریر اینکار را انجام دادیم
+Scenario 1: One process is background, the other is not; only non-background output is shown.
+Scenario 2: Both processes are non-background, but background process output is still excluded.
+Scenario 3: Both are background processes, with output excluded as before.
 
+4) Killing a Process
+This section explores terminating processes before completion. A function prints numbers 0 to 10 with a one-second delay. The scenarios are:
 
+Scenario 1: The process is killed immediately after starting.
+Scenario 2: We wait until the process is no longer alive before killing it.
+Scenario 3: The process is given 5 seconds to complete; if it doesn’t, it’s killed.
 
-# part tow : Process-Based Parallelism
-برای نمایش خروجی هر تمرین تمامی خروجی هارا در صف ذخیره کرده و در نهایت پس از اتمام برنامه درای های صف را یک به یک در یک لیست قرار داده و در نهایت آن لیست را به هسته برنامه بازمیگردانیم و در آنجه به صفحه نتایج پاس داده میشود
-# 1) Spawning a process
-این دقیقا مثل سکشن اول تردینگ است با این تفاوت که اینجا مالتی پراسسینگ بجای تردینگ قرار دارد و کد تابع اجرایی یک ورودی دارد و به اضای آن عدد ورودی خط در خروجی چا میکند ین اگر 5 باشد 4و3و2و1و0 را چاپ میکند و سناریو ها و باقی چیزها مثل قبل است
-# 2) Naming a process
-درینجا به فرایند ها نام اختصاری خودشان را اختصاص میدهیم و داخل فراین نام هر فرایند را بدست می آوریم 
-سناریو ها به این صورت است که در سناریو اول طبق روال بالا هر دو فرایند یک با نام اختصاصی و دیگری با نام عادی استارت شده و سپس منتظر پایانش میمانیم در سناریو دوم برعکس سناریو قبل اول یک فرایند اجرا سپس دیگری اجرا میشود یعنی عملکرد خطی دارد نخه موازی 
- در سناریو سوم اما تابع اجرایی را تغییر داده و تایم اسلیپ را برداشته و زمان اجرا را تا حد امکان کاهش داده ایم
-# 3) Running processes in the background
- سناریو هایی که در بکگران اجرا میشوند خروجی نمیدهند اما ما اینجا خروجی هارا در صف ریخته و نمایش میدهیم که درین حالت باید همه خروجی ها نمایش داده شود پس برای نشان دادن تفاوت اجرای فراند های پس زمینه شرط گذاشتیم که اگر پس زمینه بود خروجی را در صف نریز
- سناریو اول فرایندی که اسم بگراند دارد بکگران است و دیگری غیر بکگران خروجی هم به همین منوال است در سناریو بعدی هردو برنامه غیر بکگران هستند اما باز هم خروجی فرایند بکگران نمایش داده نمیشود به همان دلیل فوق سناری. اسوم هم هردو فرایند بکگران هستند اما خروجی مثل قبل است به دلیل بالا
- # 4) Killing a process
-درین سکشن مفهوم کشتن فرایند هارا بررسی میکنیم کشتن به این معنی که قبل از آنکه فرایند تمام شود تمامش میکنیمیک تابع داریم که فرایند مد نظر ما میشود که اعداد 0 تا 10 در هر ثانیه چاپ میکند
-در سناریو اول ما لحظه ای پس از اجراآنرا میکشیم !
-در سناریو دوم آنقدر صبر میکنیم تا دیگر زنده نباشد و بعدش میکشیمش ! 
-در سناریو آخر هم به آن 5 ثانیه وقت میدهیم تا تمام شود چه شده بود چه نه آنرا میکشیم!!
-# 5) Defining processes in a subclass
-اجرای فاریند ها در کلاس که تفاوت چندادنی در خروجی و سناریو های ما ندارد منتها اگر فرایند هارا در کلاسی که از کلاس مالتی پراسسینگ ارث بری مکنند قرار دهیم توانایی توصعه بیشتری خواهیم داشت در سناریو اول بصورت خطی اجرایش میکنیم در سناریو دوم به صورت کاملن مواز و در سنارو آخر بصورت نصف خطی و نصف مواز اجرایش میکنیم
+5) Defining Processes in a Subclass
+Processes are defined in a class inheriting from multiprocessing.Process, offering greater flexibility for development. The scenarios are:
 
- # 6) Using a queue to exchange data
-مصئله تولید کنند و مصرف کننده را با استفاده از صف برای جابجایی اطلاعات میان ترد ها استفاده میشود
-در سنارو اول برای همگام سازی از اسلیپ های استفاده کردایم  که مشکلی پیش نیاید
-در سناریو دوم از سمافور و حلقه هارا داخل خود مصرف کننده و تولید کننده گذاشتیم 
-و در سناریو آخر از join استفاده کرده ایم
+Scenario 1: Processes run sequentially.
+Scenario 2: Processes run fully in parallel.
+Scenario 3: Half the processes run sequentially, half in parallel.
 
-# 7) Synchronizing processes
-اینجا در سناریو اول اجرای دو فرایند با بریر و اجرای بدون آنرا مقایسه کرد 
-در سناریو دو سعی بر آن کردیم که سمافور را جایگزین بریر کنیم و تاحد همموفق واقع شد
-و در سناریو آخر هم با حذف لاک نتیجه یکسانی برمیگردانیم
-# 8)Using a process pool
-از استخر برا یاجرای موازی فرایند هایی برای محاسباتی بر روی آرایه استفاده میکنیم
-در سناریو اول به صورت معمولی یک ساتخر ساخته آنرا مپ میکنیم به تابع و خروجی هارا دریافت میکنیم
-و سپس استخر را میبندی و منتظر اتمام برنامه میمانیم
-در سناریو دوم از تگ with برای استخر استفاده میکنیم 
-در نیاریو آخر همبجای عمل توان 2 از عمل توان 3 استفاده میکنیم
+6) Using a Queue to Exchange Data
+The producer-consumer problem is implemented using a queue for data exchange. The scenarios are:
+
+Scenario 1: Synchronization is achieved using sleep to avoid issues.
+Scenario 2: Semaphores and loops are embedded in the producer and consumer.
+Scenario 3: Uses join for synchronization.
+
+7) Synchronizing Processes
+The scenarios compare:
+
+Scenario 1: Running two processes with and without a barrier.
+Scenario 2: Replacing the barrier with a semaphore, achieving similar results.
+Scenario 3: Removing the lock to produce equivalent output.
+
+8) Using a Process Pool
+A process pool is used for parallel computations on an array. The scenarios are:
+
+Scenario 1: A pool is created, mapped to a function, and outputs are collected before closing the pool and waiting for completion.
+Scenario 2: Uses a with statement for the pool.
+Scenario 3: Replaces the square operation with a cube operation.
