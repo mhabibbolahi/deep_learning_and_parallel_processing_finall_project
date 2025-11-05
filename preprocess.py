@@ -4,31 +4,43 @@ from matplotlib.image import imread
 import os
 
 
-pick_path = 'oxford_iiit_pet/mask'
-mask_path = 'oxford_iiit_pet/pick'
-pick_list = os.listdir(pick_path)
+pict_path = 'oxford_iiit_pet/pict'
+mask_path = 'oxford_iiit_pet/mask'
+pict_list = os.listdir(pict_path)
 mask_list = os.listdir(mask_path)
 # find suitable width & height process
-pick_widths = []
-pick_heights = []
-for pick_name in pick_list:
-    pick = Image.open(os.path.join(pick_path, pick_name))
-    pick_width, pick_height = pick.size
-    pick_widths.append(pick_width)
-    pick_heights.append(pick_height)
+pict_widths = []
+pict_heights = []
+for pict_name in pict_list:
+    pict = Image.open(os.path.join(pict_path, pict_name))
+    pict_width, pict_height = pict.size
+    pict_widths.append(pict_width)
+    pict_heights.append(pict_height)
 
-print(f'suitable width : {np.mean(pick_heights)},suitable height: {np.mean(pick_widths)}')
+print(f'suitable width : {np.mean(pict_heights)},suitable height: {np.mean(pict_widths)}')
 
-pick = []
-mask = []
-INPUT_HEIGHT = 224
-INPUT_WIDTH = 224
+# resize image to make them similar
 
-for x in pick_list:
-    y = Image.open('oxford_iiit_pet/pick/'+x).crop((0, 0, INPUT_WIDTH, INPUT_WIDTH))
-    y.save('oxford_iiit_pet/pick2/'+x)
-print('55')
-for x in pick_list:
-    y = Image.open('oxford_iiit_pet/mask/' + x).crop((0, 0, INPUT_WIDTH, INPUT_WIDTH))
-    y.save('oxford_iiit_pet/mask2/' + x)
-print('55')
+preprocessed_pict_path = 'oxford_iiit_pet/preprocessed_pict'
+preprocessed_mask_path = 'oxford_iiit_pet/preprocessed_mask'
+
+os.makedirs(preprocessed_pict_path, exist_ok=True)
+os.makedirs(preprocessed_mask_path, exist_ok=True)
+
+INPUT_WIDTH = int(np.mean(pict_widths))
+INPUT_HEIGHT = int(np.mean(pict_heights))
+
+for pict_name in pict_list:
+    pict = Image.open(os.path.join(pict_path, pict_name))
+    pict = pict.convert('RGB')
+    pict = pict.resize((INPUT_WIDTH, INPUT_HEIGHT), Image.BILINEAR)
+    pict.save(os.path.join(preprocessed_pict_path, pict_name), format='JPEG', quality=95)
+
+print('pictures are preprocessed')
+
+for mack_name in mask_list:
+    mask = Image.open(os.path.join(mask_path, mack_name))
+    mask = mask.resize((INPUT_WIDTH, INPUT_HEIGHT), Image.NEAREST)
+    mask.save(os.path.join(preprocessed_mask_path, mack_name))
+
+print('masks are also pre-processed')
