@@ -27,8 +27,8 @@ preprocessed_mask_path = 'oxford_iiit_pet/preprocessed_mask'
 os.makedirs(preprocessed_pict_path, exist_ok=True)
 os.makedirs(preprocessed_mask_path, exist_ok=True)
 
-INPUT_WIDTH = int(np.mean(pict_widths))
-INPUT_HEIGHT = int(np.mean(pict_heights))
+INPUT_WIDTH = int(np.mean(pict_widths)) - 4
+INPUT_HEIGHT = int(np.mean(pict_heights)) - 6
 
 for pict_name in pict_list:
     pict = Image.open(os.path.join(pict_path, pict_name))
