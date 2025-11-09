@@ -20,8 +20,8 @@ def load_data(dir_pict, dir_mask, pict_height, pict_width):
 
     for i, pict_filename in enumerate(dir_pict_files):
         pict_filepath = os.path.join(dir_pict, pict_filename)
-        img = img_to_array(load_img(pict_filepath, target_size=(pict_height, pict_width)))
-        pict[i] = img / 255.0
+        pict[i] = img_to_array(load_img(pict_filepath, target_size=(pict_height, pict_width)))
+    pict /= 255
 
     for i, mask_filename in enumerate(dir_mask_files):
         mask_filepath = os.path.join(dir_mask, mask_filename)
@@ -87,7 +87,7 @@ def fcn_model(input_shape, num_classes):
     af13 = Activation('relu')(bn13)
 
     up14 = Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(af13)
-    up14 = concatenate([up14, af6], axis=3)
+    up14 = (concatenate([up14, af6], axis=3))
     conv14 = Conv2D(64, 3, padding='same', use_bias=False)(up14)
     bn14 = BatchNormalization()(conv14)
     af14 = Activation('relu')(bn14)
@@ -131,16 +131,16 @@ def main():
     print(f"Picture value range: [{pict.min()}, {pict.max()}]")
     print(f"Mask unique values: {np.unique(mask)}")
 
-    x_train, x_val, y_train, y_val = train_test_split(pict, mask, test_size=0.2, random_state=42)
-
     NUM_CLASSES = len(np.unique(mask))
     print(f"Number of classes: {NUM_CLASSES}")
 
-    y_train = masks_to_categorical(y_train, NUM_CLASSES)
-    y_val = masks_to_categorical(y_val, NUM_CLASSES)
+    cat_mask = masks_to_categorical(mask, NUM_CLASSES)
+
+    x_train, x_val, y_train, y_val = train_test_split(pict, cat_mask, test_size=0.2, random_state=42)
 
     print(f"y_train shape: {y_train.shape}")
     print(f"y_val shape: {y_val.shape}")
+
 
     model = fcn_model((pict_height, pict_width, 3), NUM_CLASSES)
 
@@ -151,14 +151,14 @@ def main():
     model.summary()
 
     history = model.fit(x_train, y_train,
-                        epochs=10,
-                        batch_size=4, 
+                        epochs=13,
+                        batch_size=40,
                         validation_data=(x_val, y_val))
 
     loss, accuracy = model.evaluate(x_val, y_val)
     print(f'Validation loss: {loss:.4f}, Validation accuracy: {accuracy:.4f}')
 
-    model.save('final_model_fcn.h5')
+    model.save('final_model_fcnv2.h5')
     print('Model saved successfully!')
 
 
