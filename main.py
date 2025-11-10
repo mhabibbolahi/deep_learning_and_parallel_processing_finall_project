@@ -1,7 +1,6 @@
 import importlib
 import shutil
 import uvicorn
-
 import numpy as np
 from fastapi import FastAPI, Form, Request, UploadFile, File
 from fastapi.responses import HTMLResponse
@@ -44,7 +43,7 @@ async def submit_json(request: Request, item: Item):
     return templates.TemplateResponse("result.html", {"request": request, "item": item})
 
 
-@app.post("/upload-file/", response_class=HTMLResponse)  # تغییر متد به POST
+@app.post("/upload-file/", response_class=HTMLResponse)
 async def upload_file(request: Request, network: int = Form(...), file: UploadFile = File(...)):
     file_location = f"static/{file.filename}"
     my_module = importlib.import_module(big_data_files_path[network-1])
@@ -63,6 +62,5 @@ async def upload_file(request: Request, network: int = Form(...), file: UploadFi
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 if __name__ == "__main__":
-    import uvicorn
 
     uvicorn.run(app, host="127.0.0.1", port=8000)

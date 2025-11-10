@@ -27,7 +27,7 @@ def main(input_image_path):
     for label in range(len(label_colors)):
         output_mask[predicted_mask == label] = label_colors[label]
     mask_image = Image.fromarray(output_mask)
-    mask_image = mask_image.resize((image_size[1], image_size[0]))
+    mask_image = mask_image.resize(image_size)
     mask_image.save(input_image_path)
 
     return input_image_path
