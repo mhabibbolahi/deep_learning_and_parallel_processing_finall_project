@@ -1,135 +1,316 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parallelism and Big Data</title>
+    <title>Parallelism and Deep learning</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        h1 {
-            color: #333;
-        }
-        .container {
-            text-align: center;
-        }
-        .box {
-            width: 200px;
             padding: 20px;
-            margin: 20px;
-            border: 2px solid #007BFF;
-            border-radius: 5px;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        h1 {
+            color: white;
             text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInDown 0.8s ease;
+        }
+
+        #selection {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .box {
+            width: 280px;
+            height: 280px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
             cursor: pointer;
-            background-color: #f0f0f0;
-            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: fadeInUp 0.8s ease;
         }
+
+        .box:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
         .box:hover {
-            background-color: #e0e0e0;
+            transform: translateY(-15px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
         }
+
+        .box:hover::before {
+            opacity: 1;
+        }
+
+        .box-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            transition: color 0.4s ease;
+        }
+
+        .box:hover .box-content {
+            color: white;
+        }
+
+        .box-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            transition: transform 0.4s ease;
+        }
+
+        .box:hover .box-icon {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+        .box-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
         form {
             display: none;
-            margin-bottom: 20px;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
         }
+
+        form h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-shadow: none;
+        }
+
         label {
-            display: inline-block;
-            margin-bottom: 10px;
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1rem;
         }
+
         select, input[type="file"] {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
         }
+
+        select:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
         .buttons {
             display: flex;
-            justify-content: space-between;
+            gap: 15px;
+            margin-top: 30px;
         }
-        input[type="submit"], button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
+
+        button, input[type="submit"] {
+            flex: 1;
+            padding: 15px 30px;
             border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        input[type="submit"]:hover, button:hover {
-            background-color: #0056b3;
+
+        input[type="submit"], form button[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
+
+        input[type="submit"]:hover, form button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
         #backButton {
-            background-color: #6c757d;
+            background: #6c757d;
+            color: white;
         }
+
         #backButton:hover {
-            background-color: #5a6268;
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .box {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            form {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-<div id="selection" class="container">
-    <h1>Select an Option</h1>
-    <div class="box" onclick="showForm('parallelismForm')">Parallelism</div>
-    <div class="box" onclick="showForm('bigDataForm')">Big Data</div>
+<div class="main-container">
+    <div id="selection">
+        <h1 style="width: 100%;">Select an Option</h1>
+        <div class="box" onclick="showForm('parallelismForm')">
+            <div class="box-content">
+                <div class="box-icon">⚡</div>
+                <div class="box-title">Parallelism</div>
+            </div>
+        </div>
+        <div class="box" onclick="showForm('bigDataForm')">
+            <div class="box-content">
+                <div class="box-icon">📊</div>
+                <div class="box-title">Deep learning</div>
+            </div>
+        </div>
+    </div>
+
+    <form id="parallelismForm" action="/submit-form/" method="post">
+        <h1>⚡ Parallelism</h1>
+
+        <label for="part">Which part?</label>
+        <select id="part" name="part">
+            <option value="TBP">Thread-Based Parallelism</option>
+            <option value="PBP">Process-Based Parallelism</option>
+        </select>
+
+        <label for="sections">Which sections?</label>
+        <select id="sections" name="sections">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+        </select>
+
+        <label for="scenario">Which scenario?</label>
+        <select id="scenario" name="scenario">
+            <option value="scenario_1">1</option>
+            <option value="scenario_2">2</option>
+            <option value="scenario_3">3</option>
+        </select>
+
+        <div class="buttons">
+            <input type="submit" value="Submit">
+            <button type="button" id="backButton" onclick="showSelection()">Back</button>
+        </div>
+    </form>
+
+    <form id="bigDataForm" action="/upload-file/" method="post" enctype="multipart/form-data">
+        <h1>📊 Big Data</h1>
+
+        <label for="network">Which network?</label>
+        <select id="network" name="network">
+            <option value="1">FCN</option>
+            <option value="2">CNN</option>
+        </select>
+
+        <label for="fileUpload">Choose file:</label>
+        <input type="file" id="fileUpload" name="file" required>
+
+        <div class="buttons">
+            <button type="submit">Upload</button>
+            <button type="button" id="backButton" onclick="showSelection()">Back</button>
+        </div>
+    </form>
 </div>
-
-<form id="parallelismForm" action="/submit-form/" method="post" class="container">
-    <h1>Parallelism</h1>
-    <label for="part">Which part?</label>
-    <select id="part" name="part">
-        <option value="TBP">Thread-Based Parallelism</option>
-        <option value="PBP">Process-Based Parallelism</option>
-    </select><br><br>
-
-    <label for="sections">Which sections?</label>
-    <select id="sections" name="sections">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-    </select><br><br>
-
-    <label for="scenario">Which network?</label>
-    <select id="scenario" name="scenario">
-        <option value="scenario_1">1</option>
-        <option value="scenario_2">2</option>
-        <option value="scenario_3">3</option>
-    </select><br><br>
-
-    <div class="buttons">
-        <button type="button" id="backButton" onclick="showSelection()">Back</button>
-        <input type="submit" value="Submit">
-    </div>
-</form>
-
-<form id="bigDataForm" action="/upload-file/" method="post" enctype="multipart/form-data" class="container">
-    <h1>Big Data</h1>
-
-    <label for="network">Which scenario?</label>
-    <select id="network" name="network">
-        <option value="1">FCN</option>
-        <option value="2">CNN</option>
-    </select><br><br>
-    <label for="fileUpload">Choose file:</label>
-    <input type="file" id="fileUpload" name="file" required><br><br>
-
-    <div class="buttons">
-        <button type="button" id="backButton" onclick="showSelection()">Back</button>
-        <button type="submit">Upload</button>
-    </div>
-</form>
 
 <script>
     function showForm(formId) {
@@ -138,7 +319,7 @@
     }
 
     function showSelection() {
-        document.getElementById('selection').style.display = 'block';
+        document.getElementById('selection').style.display = 'flex';
         document.getElementById('parallelismForm').style.display = 'none';
         document.getElementById('bigDataForm').style.display = 'none';
     }
@@ -146,5 +327,3 @@
 
 </body>
 </html>
-
-
